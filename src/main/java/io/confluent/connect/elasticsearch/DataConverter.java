@@ -77,7 +77,7 @@ public class DataConverter {
         Objects.requireNonNull(behaviorOnNullValues, "behaviorOnNullValues cannot be null.");
   }
 
-  private String convertKey(Schema keySchema, Object key) {
+  private KeyObject convertKey(Schema keySchema, Object key) {
     if (key == null) {
       throw new ConnectException("Key is used as document id and can not be null.");
     }
@@ -102,7 +102,12 @@ public class DataConverter {
       case INT32:
       case INT64:
       case STRING:
-        return String.valueOf(key);
+        return new KeyObject(String.valueOf(key));
+      case STRUCT:
+        Field idField = keySchema.field("id");
+        Field routingField = keySchema.field("routing");
+        Struct keyValue = (Struct)key;
+        return new KeyObject(keyValue.get(idField), keyValue.get(routingField));
       default:
         throw new DataException(schemaType.name() + " is not supported as the document id.");
     }
@@ -174,17 +179,21 @@ public class DataConverter {
     }
 
     final String id;
+    final String routing;
     if (ignoreKey) {
       id = record.topic()
            + "+" + String.valueOf((int) record.kafkaPartition())
            + "+" + String.valueOf(record.kafkaOffset());
+      routing = null;
     } else {
-      id = convertKey(record.keySchema(), record.key());
+      KeyObject keyObj = convertKey(record.keySchema(), record.key());
+      id = keyObj.id;
+      routing = keyObj.routing;
     }
 
     final String payload = getPayload(record, ignoreSchema);
     final Long version = ignoreKey ? null : record.kafkaOffset();
-    return new IndexableRecord(new Key(index, type, id), payload, version);
+    return new IndexableRecord(new Key(index, type, id, routing), payload, version);
   }
 
   private String getPayload(SinkRecord record, boolean ignoreSchema) {
@@ -435,6 +444,22 @@ public class DataConverter {
     @Override
     public String toString() {
       return name().toLowerCase(Locale.ROOT);
+    }
+  }
+
+  public static class KeyObject {
+
+    public final String id;
+    public final String routing;
+
+    public KeyObject(Object id, Object routing) {
+      this.id = id.toString();
+      this.routing = routing.toString();
+    }
+
+    public KeyObject(Object id) {
+      this.id = id.toString();
+      this.routing = null;
     }
   }
 }

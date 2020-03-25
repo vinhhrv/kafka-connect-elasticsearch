@@ -479,6 +479,10 @@ public class JestElasticsearchClient implements ElasticsearchClient {
         .index(record.key.index)
         .type(record.key.type);
 
+    if (record.key.routing != null) {
+      req.setParameter("routing", record.key.routing);
+    }
+
     // TODO: Should version information be set here?
     return req.build();
   }
@@ -491,17 +495,23 @@ public class JestElasticsearchClient implements ElasticsearchClient {
     if (record.version != null) {
       req.setParameter("version_type", "external").setParameter("version", record.version);
     }
+    if (record.key.routing != null) {
+      req.setParameter("routing", record.key.routing);
+    }
     return req.build();
   }
 
   private Update toUpdateRequest(IndexableRecord record) {
     String payload = "{\"doc\":" + record.payload
         + ", \"doc_as_upsert\":true}";
-    return new Update.Builder(payload)
+    Update.Builder reg = new Update.Builder(payload)
         .index(record.key.index)
         .type(record.key.type)
-        .id(record.key.id)
-        .build();
+        .id(record.key.id);
+    if (record.key.routing != null) {
+      reg.setParameter("routing", record.key.routing);
+    }
+    return reg.build();
   }
 
   public BulkResponse executeBulk(BulkRequest bulk) throws IOException {
@@ -522,7 +532,7 @@ public class JestElasticsearchClient implements ElasticsearchClient {
         final ObjectNode parsedError = (ObjectNode) OBJECT_MAPPER.readTree(item.error);
         final String errorType = parsedError.get("type").asText("");
         if ("version_conflict_engine_exception".equals(errorType)) {
-          versionConflicts.add(new Key(item.index, item.type, item.id));
+          versionConflicts.add(new Key(item.index, item.type, item.id, null));
         } else if ("mapper_parse_exception".equals(errorType)) {
           retriable = false;
           errors.add(item.error);
@@ -546,13 +556,22 @@ public class JestElasticsearchClient implements ElasticsearchClient {
   }
 
   // For testing purposes
-  public JsonObject search(String query, String index, String type) throws IOException {
+  public JsonObject search(
+      String query, 
+      String index, 
+      String type, 
+      String routing
+  ) 
+      throws IOException {
     final Search.Builder search = new Search.Builder(query);
     if (index != null) {
       search.addIndex(index);
     }
     if (type != null) {
       search.addType(type);
+    }
+    if (routing != null) {
+      search.setParameter("routing", routing);
     }
 
     log.info("Executing search on index '{}' (type={}): {}", index, type, query);

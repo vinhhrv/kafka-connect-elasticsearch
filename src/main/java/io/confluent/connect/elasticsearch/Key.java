@@ -22,11 +22,13 @@ public class Key {
   public final String index;
   public final String type;
   public final String id;
+  public final String routing;
 
-  public Key(String index, String type, String id) {
+  public Key(String index, String type, String id, String routing) {
     this.index = index;
     this.type = type;
     this.id = id;
+    this.routing = routing;
   }
 
   @Override
@@ -40,17 +42,18 @@ public class Key {
     Key that = (Key) o;
     return Objects.equals(index, that.index)
            && Objects.equals(type, that.type)
-           && Objects.equals(id, that.id);
+           && Objects.equals(id, that.id)
+           && Objects.equals(routing, that.routing);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(index, type, id);
+    return Objects.hash(index, type, id, routing);
   }
 
   @Override
   public String toString() {
-    return String.format("Key{%s/%s/%s}", index, type, id);
+    return String.format("Key{%s/%s/%s/%s}", index, type, id, routing);
   }
 
 }

@@ -39,6 +39,7 @@ public class DataConverterTest {
   
   private DataConverter converter;
   private String key;
+  private String routing;
   private String topic;
   private int partition;
   private long offset;
@@ -50,6 +51,7 @@ public class DataConverterTest {
   public void setUp() {
     converter = new DataConverter(true, BehaviorOnNullValues.DEFAULT);
     key = "key";
+    routing = "routing";
     topic = "topic";
     partition = 0;
     offset = 0;
@@ -311,6 +313,17 @@ public class DataConverterTest {
   }
 
   @Test
+  public void deleteOnNullValueWithRouting() {
+    converter = new DataConverter(true, BehaviorOnNullValues.DELETE);
+
+    SinkRecord sinkRecord = createSinkRecordWithValueAndRouting(null);
+    IndexableRecord expectedRecord = createIndexableRecordWithPayloadAndRouting(null, routing);
+    IndexableRecord actualRecord = converter.convertRecord(sinkRecord, index, type, false, false);
+
+    assertEquals(expectedRecord, actualRecord);
+  }
+
+  @Test
   public void ignoreDeleteOnNullValueWithNullKey() {
     converter = new DataConverter(true, BehaviorOnNullValues.DELETE);
     key = null;
@@ -337,7 +350,24 @@ public class DataConverterTest {
   }
 
   public IndexableRecord createIndexableRecordWithPayload(String payload) {
-    return new IndexableRecord(new Key(index, type, key), payload, offset);
+    return new IndexableRecord(new Key(index, type, key, null), payload, offset);
+  }
+
+  public IndexableRecord createIndexableRecordWithPayloadAndRouting(String payload, String routing) {
+    return new IndexableRecord(new Key(index, type, key, routing), payload, offset);
+  }
+
+  public SinkRecord createSinkRecordWithValueAndRouting(Object value) {
+    Schema keySchema = SchemaBuilder.struct()
+      .field("id", Schema.STRING_SCHEMA)
+      .field("routing", Schema.STRING_SCHEMA)
+      .build();
+
+    Struct keyValue = new Struct(keySchema);
+    keyValue.put("id", key);
+    keyValue.put("routing", routing);
+
+    return new SinkRecord(topic, partition, keySchema, keyValue, schema, value, offset);
   }
 
 }

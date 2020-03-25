@@ -128,7 +128,7 @@ public class ElasticsearchIntegrationTestBase {
   }
 
   protected void verifySearchResults(Collection<?> records, String index, boolean ignoreKey, boolean ignoreSchema) throws IOException {
-    final JsonObject result = client.search("", index, null);
+    final JsonObject result = client.search("", index, null, null);
 
     final JsonArray rawHits = result.getAsJsonObject("hits").getAsJsonArray("hits");
 

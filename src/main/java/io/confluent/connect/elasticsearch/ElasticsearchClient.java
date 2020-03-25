@@ -89,7 +89,7 @@ public interface ElasticsearchClient extends AutoCloseable {
    * @return the search result
    * @throws IOException if the client cannot execute the request
    */
-  JsonObject search(String query, String index, String type) throws IOException;
+  JsonObject search(String query, String index, String type, String routing) throws IOException;
 
   /**
    * Delete all indexes in Elasticsearch (useful mostly for test)
