@@ -15,12 +15,22 @@
 
 package io.confluent.connect.elasticsearch;
 
+import java.io.IOException;
+import java.util.Map;
 import java.util.Objects;
+
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonSerializer;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializerProvider;
+import com.fasterxml.jackson.databind.module.SimpleModule;
 
 public class IndexableRecord {
 
   public final Key key;
-  public final String payload;
+  public String payload;
   public final Long version;
 
   public IndexableRecord(Key key, String payload, Long version) {
@@ -46,5 +56,33 @@ public class IndexableRecord {
   @Override
   public int hashCode() {
     return Objects.hash(key, version, payload);
+  }
+
+  public String getPayloadWithCamelConvert() {
+    try {
+      return jsonToCamelJson(payload);
+    } catch (Exception ex) {
+      return null;
+    }
+  }
+
+  private String jsonToCamelJson(String jsonString) 
+      throws IOException {
+    SimpleModule simpleModule = new SimpleModule();
+    simpleModule.addKeySerializer(String.class, new CamelCaseKeySerializer());
+    ObjectMapper mapper = new ObjectMapper();
+    mapper.registerModule(simpleModule);
+    Map<String, Object> map = mapper.readValue(jsonString, 
+                                              new TypeReference<Map<String, Object>>() {});
+    return mapper.writeValueAsString(map);
+  }
+
+  private class CamelCaseKeySerializer extends JsonSerializer<String> {
+    @Override
+    public void serialize(String value, JsonGenerator gen, SerializerProvider serializers)
+        throws IOException, JsonProcessingException {
+      String key = Character.toLowerCase(value.charAt(0)) + value.substring(1);
+      gen.writeFieldName(key);
+    }
   }
 }

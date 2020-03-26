@@ -96,14 +96,14 @@ public class DataConverterTest {
     assertIdenticalAfterPreProcess(SchemaBuilder.bytes().defaultValue(new byte[0]).build());
   }
 
-  private void assertIdenticalAfterPreProcess(Schema schema) {
+  private void assertIdenticalAfterPreProcess(final Schema schema) {
     assertEquals(schema, converter.preProcessSchema(schema));
   }
 
   @Test
   public void decimal() {
-    Schema origSchema = Decimal.schema(2);
-    Schema preProcessedSchema = converter.preProcessSchema(origSchema);
+    final Schema origSchema = Decimal.schema(2);
+    final Schema preProcessedSchema = converter.preProcessSchema(origSchema);
     assertEquals(Schema.FLOAT64_SCHEMA, preProcessedSchema);
 
     assertEquals(0.02, converter.preProcessValue(new BigDecimal("0.02"), origSchema, preProcessedSchema));
@@ -123,8 +123,8 @@ public class DataConverterTest {
 
   @Test
   public void array() {
-    Schema origSchema = SchemaBuilder.array(Decimal.schema(2)).schema();
-    Schema preProcessedSchema = converter.preProcessSchema(origSchema);
+    final Schema origSchema = SchemaBuilder.array(Decimal.schema(2)).schema();
+    final Schema preProcessedSchema = converter.preProcessSchema(origSchema);
     assertEquals(SchemaBuilder.array(Schema.FLOAT64_SCHEMA).build(), preProcessedSchema);
 
     assertEquals(
@@ -147,8 +147,8 @@ public class DataConverterTest {
 
   @Test
   public void map() {
-    Schema origSchema = SchemaBuilder.map(Schema.INT32_SCHEMA, Decimal.schema(2)).build();
-    Schema preProcessedSchema = converter.preProcessSchema(origSchema);
+    final Schema origSchema = SchemaBuilder.map(Schema.INT32_SCHEMA, Decimal.schema(2)).build();
+    final Schema preProcessedSchema = converter.preProcessSchema(origSchema);
     assertEquals(
         SchemaBuilder.array(
             SchemaBuilder.struct().name(Schema.INT32_SCHEMA.type().name() + "-" + Decimal.LOGICAL_NAME)
@@ -159,7 +159,7 @@ public class DataConverterTest {
         preProcessedSchema
     );
 
-    Map<Object, Object> origValue = new HashMap<>();
+    final Map<Object, Object> origValue = new HashMap<>();
     origValue.put(1, new BigDecimal("0.02"));
     origValue.put(2, new BigDecimal("0.42"));
     assertEquals(
@@ -189,16 +189,16 @@ public class DataConverterTest {
 
   @Test
   public void stringKeyedMapNonCompactFormat() {
-    Schema origSchema = SchemaBuilder.map(Schema.STRING_SCHEMA, Schema.INT32_SCHEMA).build();
+    final Schema origSchema = SchemaBuilder.map(Schema.STRING_SCHEMA, Schema.INT32_SCHEMA).build();
 
-    Map<Object, Object> origValue = new HashMap<>();
+    final Map<Object, Object> origValue = new HashMap<>();
     origValue.put("field1", 1);
     origValue.put("field2", 2);
 
     // Use the older non-compact format for map entries with string keys
     converter = new DataConverter(false, BehaviorOnNullValues.DEFAULT);
 
-    Schema preProcessedSchema = converter.preProcessSchema(origSchema);
+    final Schema preProcessedSchema = converter.preProcessSchema(origSchema);
     assertEquals(
         SchemaBuilder.array(
             SchemaBuilder.struct().name(Schema.STRING_SCHEMA.type().name() + "-" + Schema.INT32_SCHEMA.type().name())
@@ -223,27 +223,27 @@ public class DataConverterTest {
 
   @Test
   public void stringKeyedMapCompactFormat() {
-    Schema origSchema = SchemaBuilder.map(Schema.STRING_SCHEMA, Schema.INT32_SCHEMA).build();
+    final Schema origSchema = SchemaBuilder.map(Schema.STRING_SCHEMA, Schema.INT32_SCHEMA).build();
 
-    Map<Object, Object> origValue = new HashMap<>();
+    final Map<Object, Object> origValue = new HashMap<>();
     origValue.put("field1", 1);
     origValue.put("field2", 2);
 
     // Use the newer compact format for map entries with string keys
     converter = new DataConverter(true, BehaviorOnNullValues.DEFAULT);
-    Schema preProcessedSchema = converter.preProcessSchema(origSchema);
+    final Schema preProcessedSchema = converter.preProcessSchema(origSchema);
     assertEquals(
         SchemaBuilder.map(Schema.STRING_SCHEMA, Schema.INT32_SCHEMA).build(),
         preProcessedSchema
     );
-    HashMap<?, ?> newValue = (HashMap<?, ?>) converter.preProcessValue(origValue, origSchema, preProcessedSchema);
+    final HashMap<?, ?> newValue = (HashMap<?, ?>) converter.preProcessValue(origValue, origSchema, preProcessedSchema);
     assertEquals(origValue, newValue);
   }
 
   @Test
   public void struct() {
-    Schema origSchema = SchemaBuilder.struct().name("struct").field("decimal", Decimal.schema(2)).build();
-    Schema preProcessedSchema = converter.preProcessSchema(origSchema);
+    final Schema origSchema = SchemaBuilder.struct().name("struct").field("decimal", Decimal.schema(2)).build();
+    final Schema preProcessedSchema = converter.preProcessSchema(origSchema);
     assertEquals(
         SchemaBuilder.struct().name("struct").field("decimal", Schema.FLOAT64_SCHEMA).build(),
         preProcessedSchema
@@ -279,14 +279,14 @@ public class DataConverterTest {
   }
 
   private void testOptionalFieldWithoutDefault(
-    SchemaBuilder optionalFieldSchema
+    final SchemaBuilder optionalFieldSchema
   ) {
-    Schema origSchema = SchemaBuilder.struct().name("struct").field(
+    final Schema origSchema = SchemaBuilder.struct().name("struct").field(
         "optionalField", optionalFieldSchema.optional().build()
     ).build();
-    Schema preProcessedSchema = converter.preProcessSchema(origSchema);
+    final Schema preProcessedSchema = converter.preProcessSchema(origSchema);
 
-    Object preProcessedValue = converter.preProcessValue(
+    final Object preProcessedValue = converter.preProcessValue(
         new Struct(origSchema).put("optionalField", null), origSchema, preProcessedSchema
     );
 
@@ -297,7 +297,7 @@ public class DataConverterTest {
   public void ignoreOnNullValue() {
     converter = new DataConverter(true, BehaviorOnNullValues.IGNORE);
 
-    SinkRecord sinkRecord = createSinkRecordWithValue(null);
+    final SinkRecord sinkRecord = createSinkRecordWithValue(null);
     assertNull(converter.convertRecord(sinkRecord, index, type, false, false));
   }
 
@@ -305,9 +305,9 @@ public class DataConverterTest {
   public void deleteOnNullValue() {
     converter = new DataConverter(true, BehaviorOnNullValues.DELETE);
 
-    SinkRecord sinkRecord = createSinkRecordWithValue(null);
-    IndexableRecord expectedRecord = createIndexableRecordWithPayload(null);
-    IndexableRecord actualRecord = converter.convertRecord(sinkRecord, index, type, false, false);
+    final SinkRecord sinkRecord = createSinkRecordWithValue(null);
+    final IndexableRecord expectedRecord = createIndexableRecordWithPayload(null);
+    final IndexableRecord actualRecord = converter.convertRecord(sinkRecord, index, type, false, false);
 
     assertEquals(expectedRecord, actualRecord);
   }
@@ -316,9 +316,9 @@ public class DataConverterTest {
   public void deleteOnNullValueWithRouting() {
     converter = new DataConverter(true, BehaviorOnNullValues.DELETE);
 
-    SinkRecord sinkRecord = createSinkRecordWithValueAndRouting(null);
-    IndexableRecord expectedRecord = createIndexableRecordWithPayloadAndRouting(null, routing);
-    IndexableRecord actualRecord = converter.convertRecord(sinkRecord, index, type, false, false);
+    final SinkRecord sinkRecord = createSinkRecordWithValueAndRouting(null);
+    final IndexableRecord expectedRecord = createIndexableRecordWithPayloadAndRouting(null, routing);
+    final IndexableRecord actualRecord = converter.convertRecord(sinkRecord, index, type, false, false);
 
     assertEquals(expectedRecord, actualRecord);
   }
@@ -328,7 +328,7 @@ public class DataConverterTest {
     converter = new DataConverter(true, BehaviorOnNullValues.DELETE);
     key = null;
 
-    SinkRecord sinkRecord = createSinkRecordWithValue(null);
+    final SinkRecord sinkRecord = createSinkRecordWithValue(null);
     assertNull(converter.convertRecord(sinkRecord, index, type, false, false));
   }
 
@@ -336,34 +336,30 @@ public class DataConverterTest {
   public void failOnNullValue() {
     converter = new DataConverter(true, BehaviorOnNullValues.FAIL);
 
-    SinkRecord sinkRecord = createSinkRecordWithValue(null);
+    final SinkRecord sinkRecord = createSinkRecordWithValue(null);
     try {
       converter.convertRecord(sinkRecord, index, type, false, false);
       fail("should fail on null-valued record with behaviorOnNullValues = FAIL");
-    } catch (DataException e) {
+    } catch (final DataException e) {
       // expected
     }
   }
 
-  public SinkRecord createSinkRecordWithValue(Object value) {
+  public SinkRecord createSinkRecordWithValue(final Object value) {
     return new SinkRecord(topic, partition, Schema.STRING_SCHEMA, key, schema, value, offset);
   }
 
-  public IndexableRecord createIndexableRecordWithPayload(String payload) {
+  public IndexableRecord createIndexableRecordWithPayload(final String payload) {
     return new IndexableRecord(new Key(index, type, key, null), payload, offset);
   }
 
-  public IndexableRecord createIndexableRecordWithPayloadAndRouting(String payload, String routing) {
+  public IndexableRecord createIndexableRecordWithPayloadAndRouting(final String payload, final String routing) {
     return new IndexableRecord(new Key(index, type, key, routing), payload, offset);
   }
 
-  public SinkRecord createSinkRecordWithValueAndRouting(Object value) {
-    Schema keySchema = SchemaBuilder.struct()
-      .field("id", Schema.STRING_SCHEMA)
-      .field("routing", Schema.STRING_SCHEMA)
-      .build();
-
-    Struct keyValue = new Struct(keySchema);
+  public SinkRecord createSinkRecordWithValueAndRouting(final Object value) {
+    SchemaBuilder keySchema = SchemaBuilder.map(Schema.STRING_SCHEMA, Schema.STRING_SCHEMA);
+    final Map<String, String> keyValue = new HashMap<>();
     keyValue.put("id", key);
     keyValue.put("routing", routing);
 

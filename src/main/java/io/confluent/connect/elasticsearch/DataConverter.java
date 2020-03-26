@@ -103,11 +103,8 @@ public class DataConverter {
       case INT64:
       case STRING:
         return new KeyObject(String.valueOf(key));
-      case STRUCT:
-        Field idField = keySchema.field("id");
-        Field routingField = keySchema.field("routing");
-        Struct keyValue = (Struct)key;
-        return new KeyObject(keyValue.get(idField), keyValue.get(routingField));
+      case MAP:
+        return new KeyObject((Map<?, ?>) key);
       default:
         throw new DataException(schemaType.name() + " is not supported as the document id.");
     }
@@ -455,6 +452,22 @@ public class DataConverter {
     public KeyObject(Object id, Object routing) {
       this.id = id.toString();
       this.routing = routing.toString();
+    }
+
+    public KeyObject(Map<?,?> map) {
+
+      if (map.containsKey("routing")) {
+        this.routing = map.get("routing").toString();
+      } else {
+        this.routing = null;
+      }
+      
+      if (map.containsKey("id")) {
+        this.id = map.get("id").toString();
+      } else {
+        this.id = null;
+      }
+
     }
 
     public KeyObject(Object id) {

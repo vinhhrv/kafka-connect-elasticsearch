@@ -53,6 +53,7 @@ public class ElasticsearchWriter {
 
   private final Set<String> existingMappings;
   private final BehaviorOnMalformedDoc behaviorOnMalformedDoc;
+  private final boolean propertyNamingCamel;
 
   ElasticsearchWriter(
       ElasticsearchClient client,
@@ -72,7 +73,8 @@ public class ElasticsearchWriter {
       long retryBackoffMs,
       boolean dropInvalidMessage,
       BehaviorOnNullValues behaviorOnNullValues,
-      BehaviorOnMalformedDoc behaviorOnMalformedDoc
+      BehaviorOnMalformedDoc behaviorOnMalformedDoc,
+      boolean propertyNamingCamel
   ) {
     this.client = client;
     this.type = type;
@@ -86,6 +88,7 @@ public class ElasticsearchWriter {
     this.behaviorOnNullValues = behaviorOnNullValues;
     this.converter = new DataConverter(useCompactMapEntries, behaviorOnNullValues);
     this.behaviorOnMalformedDoc = behaviorOnMalformedDoc;
+    this.propertyNamingCamel = propertyNamingCamel;
 
     bulkProcessor = new BulkProcessor<>(
         new SystemTime(),
@@ -121,6 +124,7 @@ public class ElasticsearchWriter {
     private boolean dropInvalidMessage;
     private BehaviorOnNullValues behaviorOnNullValues = BehaviorOnNullValues.DEFAULT;
     private BehaviorOnMalformedDoc behaviorOnMalformedDoc;
+    private boolean propertyNamingCamel;
 
     public Builder(ElasticsearchClient client) {
       this.client = client;
@@ -210,6 +214,11 @@ public class ElasticsearchWriter {
       return this;
     }
 
+    public Builder setPropertyNamingCamel(boolean propertyNamingCamel) {
+      this.propertyNamingCamel = propertyNamingCamel;
+      return this;
+    }
+
     public ElasticsearchWriter build() {
       return new ElasticsearchWriter(
           client,
@@ -229,7 +238,8 @@ public class ElasticsearchWriter {
           retryBackoffMs,
           dropInvalidMessage,
           behaviorOnNullValues,
-          behaviorOnMalformedDoc
+          behaviorOnMalformedDoc,
+          propertyNamingCamel
       );
     }
   }
@@ -301,6 +311,11 @@ public class ElasticsearchWriter {
             sinkRecord.kafkaPartition(),
             sinkRecord.kafkaOffset()
         );
+        
+        if (record.payload != null && propertyNamingCamel) {
+          record.payload = record.getPayloadWithCamelConvert();
+        }
+
         bulkProcessor.add(record, flushTimeoutMs);
       }
     } catch (ConnectException convertException) {

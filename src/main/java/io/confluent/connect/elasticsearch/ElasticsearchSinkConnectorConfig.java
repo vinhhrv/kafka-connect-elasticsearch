@@ -31,6 +31,9 @@ import static org.apache.kafka.common.config.SslConfigs.addClientSslSupport;
 public class ElasticsearchSinkConnectorConfig extends AbstractConfig {
   private static final String SSL_GROUP = "Security";
 
+  public static final String PROPERTY_NAMING_CAMEL_CONFIG = "property.naming.camel";
+  public static final String PROPERTY_NAMING_CAMEL_DOC = "Property Name Camel Style";
+
   public static final String CONNECTION_URL_CONFIG = "connection.url";
   private static final String CONNECTION_URL_DOC =
       "The comma-separated list of one or more Elasticsearch URLs, such as ``http://eshost1:9200,"
@@ -434,6 +437,16 @@ public class ElasticsearchSinkConnectorConfig extends AbstractConfig {
         ++order,
         Width.LONG,
         "Drop invalid messages"
+    ).define(
+        PROPERTY_NAMING_CAMEL_CONFIG,
+        Type.BOOLEAN,
+        false,
+        Importance.LOW,
+        PROPERTY_NAMING_CAMEL_DOC,
+        group,
+        ++order,
+        Width.LONG,
+        "Property Name Camel Style"
     ).define(
         BEHAVIOR_ON_NULL_VALUES_CONFIG,
         Type.STRING,

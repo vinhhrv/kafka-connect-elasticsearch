@@ -37,6 +37,16 @@ public class ElasticsearchSinkConnectorConfigTest {
   }
 
   @Test
+  public void testCamelTrueConfig() {
+    props.put(ElasticsearchSinkConnectorConfig.PROPERTY_NAMING_CAMEL_CONFIG, "true");
+    ElasticsearchSinkConnectorConfig config = new ElasticsearchSinkConnectorConfig(props);
+    Assert.assertEquals(
+        config.getBoolean(ElasticsearchSinkConnectorConfig.PROPERTY_NAMING_CAMEL_CONFIG),
+        true
+    );
+  }
+
+  @Test
   public void testSetHttpTimeoutsConfig() {
     props.put(ElasticsearchSinkConnectorConfig.READ_TIMEOUT_MS_CONFIG, "10000");
     props.put(ElasticsearchSinkConnectorConfig.CONNECTION_TIMEOUT_MS_CONFIG, "15000");

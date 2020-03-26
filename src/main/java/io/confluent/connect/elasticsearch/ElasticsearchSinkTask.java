@@ -93,6 +93,8 @@ public class ElasticsearchSinkTask extends SinkTask {
           config.getBoolean(ElasticsearchSinkConnectorConfig.DROP_INVALID_MESSAGE_CONFIG);
       boolean createIndicesAtStartTime =
           config.getBoolean(ElasticsearchSinkConnectorConfig.AUTO_CREATE_INDICES_AT_START_CONFIG);
+      boolean propertyNamingCamel =
+          config.getBoolean(ElasticsearchSinkConnectorConfig.PROPERTY_NAMING_CAMEL_CONFIG);
 
       DataConverter.BehaviorOnNullValues behaviorOnNullValues =
           DataConverter.BehaviorOnNullValues.forValue(
@@ -137,7 +139,8 @@ public class ElasticsearchSinkTask extends SinkTask {
           .setMaxRetry(maxRetry)
           .setDropInvalidMessage(dropInvalidMessage)
           .setBehaviorOnNullValues(behaviorOnNullValues)
-          .setBehaviorOnMalformedDoc(behaviorOnMalformedDoc);
+          .setBehaviorOnMalformedDoc(behaviorOnMalformedDoc)
+          .setPropertyNamingCamel(propertyNamingCamel);
 
       this.createIndicesAtStartTime = createIndicesAtStartTime;
 
