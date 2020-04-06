@@ -40,6 +40,7 @@ public class DataConverterTest {
   private DataConverter converter;
   private String key;
   private String routing;
+  private String parent;
   private String topic;
   private int partition;
   private long offset;
@@ -52,6 +53,7 @@ public class DataConverterTest {
     converter = new DataConverter(true, BehaviorOnNullValues.DEFAULT);
     key = "key";
     routing = "routing";
+    parent = "parent";
     topic = "topic";
     partition = 0;
     offset = 0;
@@ -317,7 +319,7 @@ public class DataConverterTest {
     converter = new DataConverter(true, BehaviorOnNullValues.DELETE);
 
     final SinkRecord sinkRecord = createSinkRecordWithValueAndRouting(null);
-    final IndexableRecord expectedRecord = createIndexableRecordWithPayloadAndRouting(null, routing);
+    final IndexableRecord expectedRecord = createIndexableRecordWithPayloadAndRouting(null, routing, parent);
     final IndexableRecord actualRecord = converter.convertRecord(sinkRecord, index, type, false, false);
 
     assertEquals(expectedRecord, actualRecord);
@@ -350,11 +352,11 @@ public class DataConverterTest {
   }
 
   public IndexableRecord createIndexableRecordWithPayload(final String payload) {
-    return new IndexableRecord(new Key(index, type, key, null), payload, offset);
+    return new IndexableRecord(new Key(index, type, key, null, null), payload, offset);
   }
 
-  public IndexableRecord createIndexableRecordWithPayloadAndRouting(final String payload, final String routing) {
-    return new IndexableRecord(new Key(index, type, key, routing), payload, offset);
+  public IndexableRecord createIndexableRecordWithPayloadAndRouting(final String payload, final String routing, final String parent) {
+    return new IndexableRecord(new Key(index, type, key, routing, parent), payload, offset);
   }
 
   public SinkRecord createSinkRecordWithValueAndRouting(final Object value) {
@@ -362,6 +364,7 @@ public class DataConverterTest {
     final Map<String, String> keyValue = new HashMap<>();
     keyValue.put("id", key);
     keyValue.put("routing", routing);
+    keyValue.put("parent", parent);
 
     return new SinkRecord(topic, partition, keySchema, keyValue, schema, value, offset);
   }

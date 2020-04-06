@@ -482,6 +482,9 @@ public class JestElasticsearchClient implements ElasticsearchClient {
     if (record.key.routing != null) {
       req.setParameter("routing", record.key.routing);
     }
+    if (record.key.parent != null) {
+      req.setParameter("parent", record.key.parent);
+    }
 
     // TODO: Should version information be set here?
     return req.build();
@@ -498,6 +501,9 @@ public class JestElasticsearchClient implements ElasticsearchClient {
     if (record.key.routing != null) {
       req.setParameter("routing", record.key.routing);
     }
+    if (record.key.parent != null) {
+      req.setParameter("parent", record.key.parent);
+    }
     return req.build();
   }
 
@@ -510,6 +516,9 @@ public class JestElasticsearchClient implements ElasticsearchClient {
         .id(record.key.id);
     if (record.key.routing != null) {
       reg.setParameter("routing", record.key.routing);
+    }
+    if (record.key.parent != null) {
+      reg.setParameter("parent", record.key.parent);
     }
     return reg.build();
   }
@@ -532,7 +541,7 @@ public class JestElasticsearchClient implements ElasticsearchClient {
         final ObjectNode parsedError = (ObjectNode) OBJECT_MAPPER.readTree(item.error);
         final String errorType = parsedError.get("type").asText("");
         if ("version_conflict_engine_exception".equals(errorType)) {
-          versionConflicts.add(new Key(item.index, item.type, item.id, null));
+          versionConflicts.add(new Key(item.index, item.type, item.id, null, null));
         } else if ("mapper_parse_exception".equals(errorType)) {
           retriable = false;
           errors.add(item.error);
@@ -569,6 +578,9 @@ public class JestElasticsearchClient implements ElasticsearchClient {
     }
     if (type != null) {
       search.addType(type);
+    }
+    if (routing != null) {
+      search.setParameter("routing", routing);
     }
     if (routing != null) {
       search.setParameter("routing", routing);

@@ -85,6 +85,7 @@ public class JestElasticsearchClientTest {
   private static final String KEY = "key";
   private static final String TYPE = "type";
   private static final String ROUTING = null;
+  private static final String PARENT = null;
   private static final String QUERY = "query";
 
   private JestClient jestClient;
@@ -263,7 +264,7 @@ public class JestElasticsearchClientTest {
   @Test
   public void executesBulk() throws Exception {
     JestElasticsearchClient client = new JestElasticsearchClient(jestClient);
-    IndexableRecord record = new IndexableRecord(new Key(INDEX, TYPE, KEY, ROUTING), "payload", 0L);
+    IndexableRecord record = new IndexableRecord(new Key(INDEX, TYPE, KEY, ROUTING, PARENT), "payload", 0L);
     List<IndexableRecord> records = new ArrayList<>();
     records.add(record);
     BulkRequest request = client.createBulkRequest(records);
@@ -277,7 +278,7 @@ public class JestElasticsearchClientTest {
   @Test
   public void executesBulkAndFails() throws Exception {
     JestElasticsearchClient client = new JestElasticsearchClient(jestClient);
-    IndexableRecord record = new IndexableRecord(new Key(INDEX, TYPE, KEY, ROUTING), null, 0L);
+    IndexableRecord record = new IndexableRecord(new Key(INDEX, TYPE, KEY, ROUTING, PARENT), null, 0L);
     List<IndexableRecord> records = new ArrayList<>();
     records.add(record);
     BulkRequest request = client.createBulkRequest(records);
@@ -291,7 +292,7 @@ public class JestElasticsearchClientTest {
   @Test
   public void executesBulkAndFailsWithParseError() throws Exception {
     JestElasticsearchClient client = new JestElasticsearchClient(jestClient);
-    IndexableRecord record = new IndexableRecord(new Key(INDEX, TYPE, KEY, ROUTING), "payload", 0L);
+    IndexableRecord record = new IndexableRecord(new Key(INDEX, TYPE, KEY, ROUTING, PARENT), "payload", 0L);
     List<IndexableRecord> records = new ArrayList<>();
     records.add(record);
     BulkRequest request = client.createBulkRequest(records);
@@ -304,7 +305,7 @@ public class JestElasticsearchClientTest {
   @Test
   public void executesBulkAndFailsWithSomeOtherError() throws Exception {
     JestElasticsearchClient client = new JestElasticsearchClient(jestClient);
-    IndexableRecord record = new IndexableRecord(new Key(INDEX, TYPE, KEY, ROUTING), "payload", 0L);
+    IndexableRecord record = new IndexableRecord(new Key(INDEX, TYPE, KEY, ROUTING, PARENT), "payload", 0L);
     List<IndexableRecord> records = new ArrayList<>();
     records.add(record);
     BulkRequest request = client.createBulkRequest(records);
@@ -317,7 +318,7 @@ public class JestElasticsearchClientTest {
   @Test
   public void executesBulkAndSucceedsBecauseOnlyVersionConflicts() throws Exception {
     JestElasticsearchClient client = new JestElasticsearchClient(jestClient);
-    IndexableRecord record = new IndexableRecord(new Key(INDEX, TYPE, KEY, ROUTING), "payload", 0L);
+    IndexableRecord record = new IndexableRecord(new Key(INDEX, TYPE, KEY, ROUTING, PARENT), "payload", 0L);
     List<IndexableRecord> records = new ArrayList<>();
     records.add(record);
     BulkRequest request = client.createBulkRequest(records);
@@ -350,14 +351,14 @@ public class JestElasticsearchClientTest {
   @Test
   public void toBulkableAction(){
     JestElasticsearchClient client = new JestElasticsearchClient(jestClient);
-    IndexableRecord del = new IndexableRecord(new Key("idx", "tp", "xxx", "xxx"), null, 1L);
+    IndexableRecord del = new IndexableRecord(new Key("idx", "tp", "xxx", "xxx", "xxx"), null, 1L);
     BulkableAction ba = client.toBulkableAction(del);
     assertNotNull(ba);
     assertSame(Delete.class, ba.getClass());
     assertEquals(del.key.index, ba.getIndex());
     assertEquals(del.key.id, ba.getId());
     assertEquals(del.key.type, ba.getType());
-    IndexableRecord idx = new IndexableRecord(new Key("idx", "tp", "xxx", "xxx"), "yyy", 1L);
+    IndexableRecord idx = new IndexableRecord(new Key("idx", "tp", "xxx", "xxx", "xxx"), "yyy", 1L);
     ba = client.toBulkableAction(idx);
     assertNotNull(ba);
     assertSame(Index.class, ba.getClass());

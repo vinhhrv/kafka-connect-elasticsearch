@@ -177,20 +177,23 @@ public class DataConverter {
 
     final String id;
     final String routing;
+    final String parent;
     if (ignoreKey) {
       id = record.topic()
            + "+" + String.valueOf((int) record.kafkaPartition())
            + "+" + String.valueOf(record.kafkaOffset());
       routing = null;
+      parent = null;
     } else {
       KeyObject keyObj = convertKey(record.keySchema(), record.key());
       id = keyObj.id;
       routing = keyObj.routing;
+      parent = keyObj.parent;
     }
 
     final String payload = getPayload(record, ignoreSchema);
     final Long version = ignoreKey ? null : record.kafkaOffset();
-    return new IndexableRecord(new Key(index, type, id, routing), payload, version);
+    return new IndexableRecord(new Key(index, type, id, routing, parent), payload, version);
   }
 
   private String getPayload(SinkRecord record, boolean ignoreSchema) {
@@ -448,10 +451,12 @@ public class DataConverter {
 
     public final String id;
     public final String routing;
+    public final String parent;
 
-    public KeyObject(Object id, Object routing) {
+    public KeyObject(Object id, Object routing, String parent) {
       this.id = id.toString();
       this.routing = routing.toString();
+      this.parent = parent.toString();
     }
 
     public KeyObject(Map<?,?> map) {
@@ -460,6 +465,12 @@ public class DataConverter {
         this.routing = map.get("routing").toString();
       } else {
         this.routing = null;
+      }
+
+      if (map.containsKey("parent")) {
+        this.parent = map.get("parent").toString();
+      } else {
+        this.parent = null;
       }
       
       if (map.containsKey("id")) {
@@ -473,6 +484,7 @@ public class DataConverter {
     public KeyObject(Object id) {
       this.id = id.toString();
       this.routing = null;
+      this.parent = null;
     }
   }
 }

@@ -23,12 +23,14 @@ public class Key {
   public final String type;
   public final String id;
   public final String routing;
+  public final String parent;
 
-  public Key(String index, String type, String id, String routing) {
+  public Key(String index, String type, String id, String routing, String parent) {
     this.index = index;
     this.type = type;
     this.id = id;
     this.routing = routing;
+    this.parent = parent;
   }
 
   @Override
@@ -43,17 +45,18 @@ public class Key {
     return Objects.equals(index, that.index)
            && Objects.equals(type, that.type)
            && Objects.equals(id, that.id)
-           && Objects.equals(routing, that.routing);
+           && Objects.equals(routing, that.routing)
+           && Objects.equals(parent, that.parent);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(index, type, id, routing);
+    return Objects.hash(index, type, id, routing, parent);
   }
 
   @Override
   public String toString() {
-    return String.format("Key{%s/%s/%s/%s}", index, type, id, routing);
+    return String.format("Key{%s/%s/%s/%s/%s}", index, type, id, routing, parent);
   }
 
 }
