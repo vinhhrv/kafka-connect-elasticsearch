@@ -582,9 +582,6 @@ public class JestElasticsearchClient implements ElasticsearchClient {
     if (routing != null) {
       search.setParameter("routing", routing);
     }
-    if (routing != null) {
-      search.setParameter("routing", routing);
-    }
 
     log.info("Executing search on index '{}' (type={}): {}", index, type, query);
     final SearchResult result = client.execute(search.build());

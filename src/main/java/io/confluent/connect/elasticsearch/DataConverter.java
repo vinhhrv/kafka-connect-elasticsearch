@@ -192,7 +192,10 @@ public class DataConverter {
     }
 
     final String payload = getPayload(record, ignoreSchema);
-    final Long version = ignoreKey ? null : record.kafkaOffset();
+    final Long offSetOrTimestamp = record.timestamp() == null
+          ? record.kafkaOffset() 
+          : record.timestamp();
+    final Long version = ignoreKey ? null : offSetOrTimestamp;
     return new IndexableRecord(new Key(index, type, id, routing, parent), payload, version);
   }
 
